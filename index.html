@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Model Checker</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-text">Model Checker</span>
+      </div>
+      <div class="header-right">
+        <a href="#help-section" class="help-link" onclick="toggleHelp(event)">Help</a>
+        <button class="theme-toggle" data-theme-toggle aria-label="Switch theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Help Panel -->
+  <div class="help-panel" id="help-panel" hidden>
+    <div class="help-inner">
+      <h2>Quick Reference</h2>
+      <div class="help-grid">
+        <div class="help-col">
+          <h3>Syntax (ASCII or Unicode)</h3>
+          <table class="help-table">
+            <tr><th>Symbol</th><th>ASCII</th><th>Unicode</th></tr>
+            <tr><td>Negation</td><td><code>~</code> or <code>-</code></td><td><code>¬</code></td></tr>
+            <tr><td>Conjunction</td><td><code>&amp;</code> or <code>/\</code></td><td><code>∧</code></td></tr>
+            <tr><td>Disjunction</td><td><code>|</code> or <code>\/</code></td><td><code>∨</code></td></tr>
+            <tr><td>Conditional</td><td><code>-&gt;</code> or <code>=&gt;</code></td><td><code>→</code></td></tr>
+            <tr><td>Biconditional</td><td><code>&lt;-&gt;</code> or <code>&lt;=&gt;</code></td><td><code>↔</code></td></tr>
+            <tr><td>Universal</td><td><code>Ax</code> or <code>Vx</code></td><td><code>∀x</code></td></tr>
+            <tr><td>Existential</td><td><code>Ex</code></td><td><code>∃x</code></td></tr>
+            <tr><td>Identity</td><td><code>a=b</code></td><td><code>a=b</code></td></tr>
+          </table>
+        </div>
+        <div class="help-col">
+          <h3>Examples</h3>
+          <ul class="example-list">
+            <li><code>Ax Ay Pxy</code> — Every x stands in P to every y</li>
+            <li><code>Ex(Px &amp; Qx)</code> — Something is both P and Q</li>
+            <li><code>~ExPx</code> — Nothing is P</li>
+            <li><code>Ax Ay (Rxy -&gt; Ryx)</code> — R is symmetric</li>
+            <li><code>∀x∃y Rxy</code> — Everything bears R to something</li>
+            <li><code>Pa &amp; Qb</code> — a is P and b is Q</li>
+            <li><code>a=b -&gt; (Pa -&gt; Pb)</code> — Leibniz law instance</li>
+            <li><code>Ex(Px &amp; Ay(Py -&gt; y=x))</code> — There is exactly one P</li>
+          </ul>
+          <h3 style="margin-top:1rem">Language</h3>
+          <p style="font-size:var(--text-sm)">Constants: <code>a, b, c, d, e</code> &nbsp;|&nbsp; Variables: <code>x, y, z</code> &nbsp;|&nbsp; Predicates: <code>P, Q, R, S, T</code></p>
+          <p style="font-size:var(--text-sm)">Atomic formulas use juxtaposition: <code>Pxy</code>, <code>Rxa</code>, <code>Qab</code> &mdash; no parentheses or commas between arguments.</p>
+        </div>
+      </div>
+      <button class="btn btn-ghost close-help" onclick="toggleHelp()">Close</button>
+    </div>
+  </div>
+
+  <main class="app-main">
+    <!-- LEFT COLUMN: Formula + Model Spec -->
+    <div class="col-left">
+
+      <!-- Formula input -->
+      <section class="card" id="formula-section">
+        <div class="card-header">
+          <h2 class="section-title">Formulas</h2>
+          <div class="input-toolbar">
+            <button class="sym-btn" onclick="insertSym('∀')" title="Universal">∀</button>
+            <button class="sym-btn" onclick="insertSym('∃')" title="Existential">∃</button>
+            <button class="sym-btn" onclick="insertSym('¬')" title="Negation">¬</button>
+            <button class="sym-btn" onclick="insertSym('∧')" title="Conjunction">∧</button>
+            <button class="sym-btn" onclick="insertSym('∨')" title="Disjunction">∨</button>
+            <button class="sym-btn" onclick="insertSym('→')" title="Conditional">→</button>
+            <button class="sym-btn" onclick="insertSym('↔')" title="Biconditional">↔</button>
+            <button class="sym-btn" onclick="insertSym('=')" title="Identity">=</button>
+          </div>
+        </div>
+        <div id="formula-list"></div>
+        <div class="formula-add-row">
+          <button class="btn btn-ghost btn-sm" id="add-formula-btn" onclick="addFormulaSlot()">+ Add formula</button>
+        </div>
+        <div class="formula-examples">
+          <span class="examples-label">Examples</span>
+          <button class="example-chip" onclick="setExample('Ax Ay Pxy')">∀x∀yPxy</button>
+          <button class="example-chip" onclick="setExample('Ex(Px & Qx)')">∃x(Px∧Qx)</button>
+          <button class="example-chip" onclick="setExample('~ExPx')">¬∃xPx</button>
+          <button class="example-chip" onclick="setExample('Ax Ay (Rxy -> Ryx)')">∀x∀y(Rxy→Ryx)</button>
+          <button class="example-chip" onclick="setExample('a=b -> (Pa -> Pb)')">a=b→(Pa→Pb)</button>
+          <button class="example-chip" onclick="setExample('Ex(Px & Ay(Py -> y=x))')">∃x(Px∧∀y(Py→y=x))</button>
+        </div>
+      </section>
+
+      <!-- Model Specification -->
+      <section class="card" id="model-section">
+        <div class="card-header">
+          <h2 class="section-title">Model</h2>
+          <button class="btn btn-ghost btn-sm" onclick="clearModel()" data-testid="button-clear-model">Clear</button>
+        </div>
+
+        <!-- Domain -->
+        <div class="field-group">
+          <label class="field-label" for="domain-input">
+            Domain
+          </label>
+          <input
+            id="domain-input"
+            class="text-input"
+            type="text"
+            placeholder="e.g.  a, b, c"
+            data-testid="input-domain"
+          />
+          <div class="domain-tags" id="domain-tags"></div>
+        </div>
+
+        <!-- Constants -->
+        <div class="field-group" id="constants-section" hidden>
+
+          <div class="constants-grid" id="constants-grid"></div>
+        </div>
+
+        <!-- Predicates -->
+        <div class="field-group" id="predicates-section" hidden>
+
+          <div id="predicates-grid"></div>
+        </div>
+
+        <!-- Relations -->
+        <div class="field-group" id="relations-section" hidden>
+
+          <div id="relations-grid"></div>
+        </div>
+
+        <!-- Variable Assignment (shown only for open formulas) -->
+        <div class="field-group" id="var-assign-section" hidden>
+          <label class="field-label">
+            Variable Assignment (α)
+          </label>
+          <div class="constants-grid" id="var-assign-grid"></div>
+        </div>
+
+        <!-- Evaluate button -->
+        <div class="eval-row">
+          <button class="btn btn-primary" id="eval-btn" onclick="runEvaluation()" data-testid="button-evaluate">
+            Evaluate in Model
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- RIGHT COLUMN: Graph + Result -->
+    <div class="col-right">
+
+      <!-- Graph visualization -->
+      <section class="card" id="graph-section">
+        <div class="card-header">
+          <h2 class="section-title">Model Graph</h2>
+          <span class="card-subtitle" id="graph-subtitle"></span>
+        </div>
+        <div class="graph-container" id="graph-container">
+          <svg id="graph-svg" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                <polygon points="0 0, 8 3, 0 6" fill="var(--color-primary)"/>
+              </marker>
+              <marker id="arrowhead-self" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                <polygon points="0 0, 8 3, 0 6" fill="var(--color-relation)"/>
+              </marker>
+            </defs>
+            <g id="graph-edges"></g>
+            <g id="graph-nodes"></g>
+          </svg>
+          <div class="graph-empty" id="graph-empty" hidden></div>
+        </div>
+        <div class="graph-legend" id="graph-legend" hidden>
+          <div id="legend-items"></div>
+        </div>
+      </section>
+
+      <!-- Result -->
+      <section class="card result-card" id="result-section" hidden style="display:none">
+        <div id="multi-results"></div>
+        <div class="consistency-verdict" id="consistency-verdict"></div>
+      </section>
+
+      <!-- Error card -->
+      <section class="card error-card" id="error-section" hidden style="display:none">
+        <div class="error-icon">⚠</div>
+        <div class="error-msg" id="error-msg"></div>
+      </section>
+    </div>
+  </main>
+
+  <script src="parser.js?v=5"></script>
+  <script src="evaluator.js?v=5"></script>
+  <script src="graph.js?v=5"></script>
+  <script src="app.js?v=5"></script>
+</body>
+</html>
