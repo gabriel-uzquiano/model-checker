@@ -932,12 +932,10 @@ if (!loadedFromHash) refreshGraph();
 // requested card(s) and applies compact padding.
 //
 // Supported values (comma-separated for multiple):
-//   ?card=formula  — Formulas card only
-//   ?card=model    — Model card only (domain, predicates, relations)
-//   ?card=graph    — Model Graph card only
-//   ?card=model,graph  — Model + Graph side by side (most common embed)
-//
-// Hash state (#f=...&m=...) still works normally.
+//   ?card=formula      — Formulas card only
+//   ?card=model        — Model card only (domain, predicates, relations)
+//   ?card=graph        — Model Graph card only
+//   ?card=model,graph  — Model + Graph (no formula card)
 
 (function applyCardMode() {
   const params = new URLSearchParams(location.search);
@@ -947,33 +945,41 @@ if (!loadedFromHash) refreshGraph();
     params.get('card').split(',').map(s => s.trim().toLowerCase())
   );
 
-  // Section elements
-  const cards = {
-    formula: document.getElementById('formula-section'),
-    model:   document.getElementById('model-section'),
-    graph:   document.getElementById('graph-section'),
-  };
-
   // Hide header and help panel
   const header    = document.querySelector('.app-header');
   const helpPanel = document.getElementById('help-panel');
   if (header)    header.hidden    = true;
   if (helpPanel) helpPanel.hidden = true;
 
-  // Show/hide each card
-  Object.entries(cards).forEach(([name, el]) => {
+  // Hide/show individual section cards
+  const sectionMap = {
+    formula: document.getElementById('formula-section'),
+    model:   document.getElementById('model-section'),
+    graph:   document.getElementById('graph-section'),
+  };
+
+  Object.entries(sectionMap).forEach(([name, el]) => {
     if (!el) return;
-    el.hidden = !requested.has(name);
-    if (requested.has(name)) el.style.display = '';
+    if (requested.has(name)) {
+      el.hidden = false;
+      el.style.display = '';
+    } else {
+      el.hidden = true;
+      el.style.display = 'none';
+    }
   });
 
-  // If only graph is requested: hide the left column entirely, expand right
+  // Hide result/error sections
+  ['result-section', 'error-section'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.hidden = true; el.style.display = 'none'; }
+  });
+
+  // Column visibility — hide a column only if ALL its cards are hidden
   const colLeft  = document.querySelector('.col-left');
   const colRight = document.querySelector('.col-right');
-
   const wantsLeft  = requested.has('formula') || requested.has('model');
   const wantsRight = requested.has('graph');
-
   if (colLeft)  colLeft.hidden  = !wantsLeft;
   if (colRight) colRight.hidden = !wantsRight;
 
@@ -982,12 +988,6 @@ if (!loadedFromHash) refreshGraph();
   if (appMain && (!wantsLeft || !wantsRight)) {
     appMain.style.gridTemplateColumns = '1fr';
   }
-
-  // Hide result/error sections (they appear after evaluation — keep clean)
-  const resultSection = document.getElementById('result-section');
-  const errorSection  = document.getElementById('error-section');
-  if (resultSection) { resultSection.hidden = true; resultSection.style.display = 'none'; }
-  if (errorSection)  { errorSection.hidden  = true; errorSection.style.display  = 'none'; }
 
   document.body.classList.add('card-mode');
 })();
