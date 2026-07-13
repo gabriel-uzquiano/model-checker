@@ -369,6 +369,7 @@ function buildPredicatesUI(predicates, domain) {
   const zero   = Object.entries(predicates).filter(([, ar]) => ar === 0);
   const unary  = Object.entries(predicates).filter(([, ar]) => ar === 1);
   const binary = Object.entries(predicates).filter(([, ar]) => ar === 2);
+  const higher = Object.entries(predicates).filter(([, ar]) => ar >= 3);
 
   if (zero.length + unary.length > 0) {
     predSection.hidden = false;
@@ -400,8 +401,10 @@ function buildPredicatesUI(predicates, domain) {
     predSection.hidden = true;
   }
 
-  if (binary.length > 0) {
+  if (binary.length > 0 || higher.length > 0) {
     relSection.hidden = false;
+
+    // Binary relations — checkbox grid
     binary.forEach(([name]) => {
       const block     = document.createElement('div');
       block.className = 'relation-block';
@@ -419,6 +422,35 @@ function buildPredicatesUI(predicates, domain) {
           const key = `${name}:${a}:${b}`;
           checkGrid.appendChild(makeCheckbox(`rel-${name}-${a}-${b}`, key, `\u27e8${a},${b}\u27e9`, prevRel[key]));
         });
+      });
+
+      block.appendChild(checkGrid);
+      relGrid.appendChild(block);
+    });
+
+    // n-ary relations (arity ≥ 3) — checkbox grid over all n-tuples
+    higher.forEach(([name, arity]) => {
+      const block     = document.createElement('div');
+      block.className = 'relation-block';
+
+      const pname      = document.createElement('div');
+      pname.className  = 'predicate-name';
+      pname.textContent = `I(${name})  (${arity}-place)`;
+      block.appendChild(pname);
+
+      const checkGrid     = document.createElement('div');
+      checkGrid.className = 'checkbox-grid';
+
+      // Generate all n-tuples from domain
+      function cartesian(arr, n) {
+        if (n === 1) return arr.map(el => [el]);
+        return cartesian(arr, n - 1).flatMap(t => arr.map(el => [...t, el]));
+      }
+      cartesian(domain, arity).forEach(tuple => {
+        const key    = `${name}:${tuple.join(':')}`;
+        const lbl    = `\u27e8${tuple.join(',')}\u27e9`;
+        const cbId   = `rel-${name}-${tuple.join('-')}`;
+        checkGrid.appendChild(makeCheckbox(cbId, key, lbl, prevRel[key]));
       });
 
       block.appendChild(checkGrid);
@@ -467,11 +499,14 @@ function buildModelFromUI() {
     if (parts[1] === '_zero') {
       interp[predName] = true;
     } else if (parts.length === 2) {
+      // Unary: key = name:el
       if (!Array.isArray(interp[predName])) interp[predName] = [];
       interp[predName].push(parts[1]);
-    } else if (parts.length === 3) {
+    } else {
+      // Binary or n-ary: key = name:a:b[:c...]
       if (!Array.isArray(interp[predName])) interp[predName] = [];
-      interp[predName].push([parts[1], parts[2]]);
+      const tuple = parts.slice(1);
+      interp[predName].push(tuple.length === 1 ? tuple[0] : tuple);
     }
   });
 
@@ -761,9 +796,10 @@ function encodeState() {
       } else if (parts.length === 2) {
         if (!Array.isArray(interp[name])) interp[name] = [];
         if (!interp[name].includes(parts[1])) interp[name].push(parts[1]);
-      } else if (parts.length === 3) {
+      } else {
         if (!Array.isArray(interp[name])) interp[name] = [];
-        interp[name].push([parts[1], parts[2]]);
+        const tuple = parts.slice(1);
+        interp[name].push(tuple.length === 1 ? tuple[0] : tuple);
       }
     });
 
