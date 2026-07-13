@@ -579,6 +579,12 @@ input, select { font: inherit; color: inherit; }
 .legend-item { display: flex; align-items: center; gap: var(--space-2); }
 .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 .legend-line { width: 20px; height: 2px; border-radius: 1px; flex-shrink: 0; }
+.legend-nary-note {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-style: italic;
+  padding-top: 2px;
+}
 
 /* ─── Result card — teal left border (course "example" style) ─── */
 .result-card {
@@ -745,3 +751,20 @@ input, select { font: inherit; color: inherit; }
 .steps-container::-webkit-scrollbar { width: 4px; }
 .steps-container::-webkit-scrollbar-track { background: transparent; }
 .steps-container::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 2px; }
+
+/* ── Card mode (single-card iframe embed) ───────────────────────────────────── */
+body.card-mode {
+  padding: 0;
+  background: transparent;
+}
+
+body.card-mode .app-main {
+  padding: 0.5rem 0.75rem 0.75rem;
+  gap: var(--space-4);
+}
+
+body.card-mode .card {
+  box-shadow: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
