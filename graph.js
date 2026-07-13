@@ -143,6 +143,7 @@ function renderGraph(model, sig, posOverride) {
   // ── Classify & color predicates ───────────────────────────────────────────
   const unaryPreds  = Object.entries(sig.predicates).filter(([, ar]) => ar === 1).map(([nm]) => nm);
   const binaryPreds = Object.entries(sig.predicates).filter(([, ar]) => ar === 2).map(([nm]) => nm);
+  const higherPreds = Object.entries(sig.predicates).filter(([, ar]) => ar >= 3);  // [name, arity]
 
   const predColors = {};
   let colorIdx = 0;
@@ -153,10 +154,12 @@ function renderGraph(model, sig, posOverride) {
   // ── Per-node outward direction (away from all neighbours) ──────────────────
   // Used for: self-loop placement, constant labels, predicate labels.
   const nodeOutDir = {};
+  const hasSelfLoop = new Set();
   domain.forEach(el => {
     let sx = 0, sy = 0, count = 0;
     binaryPreds.forEach(relName => {
       (model.interp[relName] || []).forEach(([a, b]) => {
+        if (a === el && b === el) { hasSelfLoop.add(el); return; }  // self-loop
         const other = a === el ? b : (b === el ? a : null);
         if (other && other !== el && positions[other]) {
           const dx = positions[other].x - positions[el].x;
@@ -171,6 +174,24 @@ function renderGraph(model, sig, posOverride) {
       nodeOutDir[el] = { dx: -sx / len, dy: -sy / len };
     } else {
       nodeOutDir[el] = { dx: 0, dy: -1 };  // default: straight up
+    }
+  });
+
+  // ── Per-node label direction ──────────────────────────────────────────────
+  // When a node has a self-loop, the loop arc occupies the outward direction.
+  // Rotate 90° to keep labels clear of the loop. Choose the rotation that
+  // points most upward (negative y) so labels stay near the top of the node.
+  const nodeLabelDir = {};
+  domain.forEach(el => {
+    const { dx, dy } = nodeOutDir[el];
+    if (hasSelfLoop.has(el)) {
+      // Two perpendicular candidates: (-dy, dx) and (dy, -dx)
+      const c1 = { dx: -dy, dy:  dx };
+      const c2 = { dx:  dy, dy: -dx };
+      // Pick the one pointing more upward (smaller dy)
+      nodeLabelDir[el] = (c1.dy <= c2.dy) ? c1 : c2;
+    } else {
+      nodeLabelDir[el] = { dx, dy };
     }
   });
 
@@ -238,8 +259,8 @@ function renderGraph(model, sig, posOverride) {
         edgeG.appendChild(line);
 
         const lbl = svgEl('text', {
-          x: (x1 + x2) / 2 + nx + (-uy * 12),
-          y: (y1 + y2) / 2 + ny + (ux * 12),
+          x: (x1 + x2) / 2 + nx + (-uy * 18),
+          y: (y1 + y2) / 2 + ny + (ux * 18),
           class: 'graph-edge-label', fill: color,
         });
         lbl.textContent = relName;
@@ -290,39 +311,45 @@ function renderGraph(model, sig, posOverride) {
     const mappedConsts = Object.entries(model.interp || {})
       .filter(([k, v]) => v === el && /^[a-w]$/.test(k))
       .map(([k]) => k);
-    // Label direction: away from connected neighbours
-    const { dx: ldx, dy: ldy } = nodeOutDir[el];
+    // Label direction: away from neighbours, rotated 90° for nodes with self-loops
+    const { dx: ldx, dy: ldy } = nodeLabelDir[el];
     // Choose text-anchor based on horizontal direction
     const anchor = ldx > 0.15 ? 'start' : ldx < -0.15 ? 'end' : 'middle';
 
+    // Stack pred and const labels outward from the node, one per line.
+    // Base offset is just past the outermost predicate ring.
+    const baseOff = nodeR + 5 + (activePreds.length > 0 ? (activePreds.length - 1) * 6 + 5 : 0);
+    // Line height for stacked labels (px between baselines)
+    const LINE_H = 13;
+    // The label y-baseline is shifted so text reads above the anchor point
+    // when going upward and below when going downward.
+    const ySign = ldy >= 0 ? 1 : -1;
+
+    if (activePreds.length > 0) {
+      const dist = baseOff + 12;
+      const plbl = svgEl('text', {
+        x: x + ldx * dist,
+        y: y + ldy * dist + ySign * 4,
+        class: 'graph-pred-label',
+        'text-anchor': anchor
+      });
+      if (activePreds.length === 1) plbl.setAttribute('fill', predColors[activePreds[0]]);
+      plbl.textContent = activePreds.join(', ');
+      g.appendChild(plbl);
+    }
+
     if (mappedConsts.length > 0) {
-      const ringOff = activePreds.length > 0 ? (nodeR + 5 + (activePreds.length - 1) * 6 + 5) : (nodeR + 4);
-      const dist = ringOff + 11;
+      // Place the const label one line further out than the pred label.
+      const predLines = activePreds.length > 0 ? 1 : 0;
+      const dist = baseOff + 12 + predLines * LINE_H;
       const clbl = svgEl('text', {
         x: x + ldx * dist,
-        y: y + ldy * dist + (ldy >= 0 ? 0 : -4),
+        y: y + ldy * dist + ySign * 4,
         class: 'graph-const-label',
         'text-anchor': anchor
       });
       clbl.textContent = mappedConsts.join(', ');
       g.appendChild(clbl);
-    }
-
-    // Predicate label — same direction as constant label but on the other side
-    if (activePreds.length > 0) {
-      const ringOff = nodeR + 5 + (activePreds.length - 1) * 6 + 8;
-      // Place pred label opposite to const label (toward neighbours side)
-      const { dx: pdx, dy: pdy } = { dx: -ldx, dy: -ldy };
-      const pAnchor = pdx > 0.15 ? 'start' : pdx < -0.15 ? 'end' : 'middle';
-      const plbl = svgEl('text', {
-        x: x + pdx * ringOff,
-        y: y + pdy * ringOff + (pdy >= 0 ? 12 : -4),
-        class: 'graph-pred-label',
-        'text-anchor': pAnchor
-      });
-      if (activePreds.length === 1) plbl.setAttribute('fill', predColors[activePreds[0]]);
-      plbl.textContent = activePreds.join(', ');
-      g.appendChild(plbl);
     }
 
     nodeG.appendChild(g);
@@ -334,7 +361,7 @@ function renderGraph(model, sig, posOverride) {
     ...binaryPreds.map(p => ({ label: `${p} (relation)`,  color: predColors[p], type: 'line'   })),
   ];
 
-  if (legendEntries.length > 0) {
+  if (legendEntries.length > 0 || higherPreds.length > 0) {
     graphLegend.hidden = false;
     legendEntries.forEach(e => {
       const item = document.createElement('div');
@@ -355,6 +382,15 @@ function renderGraph(model, sig, posOverride) {
       item.appendChild(lbl);
       legendItems.appendChild(item);
     });
+
+    // Note for n-ary relations that can't be shown as arrows
+    if (higherPreds.length > 0) {
+      const note = document.createElement('div');
+      note.className = 'legend-nary-note';
+      const names = higherPreds.map(([nm, ar]) => `${nm} (${ar}-place)`).join(', ');
+      note.textContent = `${names} not shown in graph`;
+      legendItems.appendChild(note);
+    }
   } else {
     graphLegend.hidden = true;
   }
