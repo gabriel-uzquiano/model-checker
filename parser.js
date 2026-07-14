@@ -297,7 +297,7 @@ class Parser {
       if (!this.at(TK.LOWER)) throw new ParseError('∀ must be followed by a variable (x, y, or z).');
       const v = this.expect(TK.LOWER).value;
       if (!isVariable(v)) throw new ParseError(`'${v}' is not a valid variable name. Use x, y, or z.`);
-      const arg = this.parseQuantified();
+      const arg = this.parseNeg();
       return { type: 'all', var: v, arg };
     }
     if (this.at(TK.EXI)) {
@@ -305,7 +305,7 @@ class Parser {
       if (!this.at(TK.LOWER)) throw new ParseError('∃ must be followed by a variable (x, y, or z).');
       const v = this.expect(TK.LOWER).value;
       if (!isVariable(v)) throw new ParseError(`'${v}' is not a valid variable name. Use x, y, or z.`);
-      const arg = this.parseQuantified();
+      const arg = this.parseNeg();
       return { type: 'exi', var: v, arg };
     }
     return this.parseAtom();
@@ -382,14 +382,15 @@ class Parser {
   }
 }
 
-// Variables are single lowercase letters x, y, z (with optional suffixes)
+// Variables are single lowercase letters x, y, z (with optional digit/prime suffixes)
 function isVariable(name) {
   return /^[xyz][0-9_'']*$/.test(name);
 }
 
-// Constants are a-w, or any non-xyz lowercase identifier
+// Constants are anything that is NOT a variable:
+// individual constants a–w (and longer names starting with a–w or uppercase)
 function isConstantName(name) {
-  return /^[a-wA-Z]/.test(name) || /^[xyz][0-9_'']/.test(name);
+  return !isVariable(name);
 }
 
 function parse(input) {
