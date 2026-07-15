@@ -137,8 +137,28 @@ function renderGraph(model, sig, posOverride) {
   const n     = domain.length;
   const nodeR = Math.min(26, Math.max(16, Math.round(140 / Math.max(n, 1))));
 
+  // When ?zoom is active the body is scaled up then shrunk visually,
+  // so the effective visible canvas is smaller — lay out within that.
+  const _zoomParam = parseFloat(new URLSearchParams(location.search).get('zoom'));
+  const _zoom = (_zoomParam > 0 && _zoomParam < 1) ? _zoomParam : 1;
+  const Weff  = W * _zoom;
+  const Heff  = H * _zoom;
+  const Woff  = (W - Weff) / 2;  // horizontal offset to centre the layout
+  const Hoff  = (H - Heff) / 2;  // vertical offset (top margin stays 0 — we only need bottom)
+
   // Use override positions during drag, otherwise compute/retrieve
-  const positions = posOverride || forceLayout(domain, W, H);
+  const positions = posOverride || forceLayout(domain, Weff, Heff);
+
+  // Shift positions into the centred effective region
+  if (_zoom < 1 && !posOverride) {
+    domain.forEach(el => {
+      if (positions[el]) {
+        positions[el].x += Woff;
+        // keep vertical offset small — just a top padding equal to half the freed space
+        positions[el].y += Hoff * 0.5;
+      }
+    });
+  }
 
   // ── Classify & color predicates ───────────────────────────────────────────
   const unaryPreds  = Object.entries(sig.predicates).filter(([, ar]) => ar === 1).map(([nm]) => nm);
