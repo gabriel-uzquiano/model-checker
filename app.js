@@ -995,23 +995,12 @@ if (!loadedFromHash) refreshGraph();
   const zoom = parseFloat(params.get('zoom'));
   if (zoom > 0 && zoom < 1) {
     const target = appMain || document.body;
-    // Wrap in a centering flex shell so transform doesn't shift content left
-    const shell = document.createElement('div');
-    shell.style.cssText = [
-      'width:100%',
-      'display:flex',
-      'justify-content:center',
-      'align-items:flex-start',
-    ].join(';');
-    target.parentNode.insertBefore(shell, target);
-    shell.appendChild(target);
-    // Keep element at 100vw, scale it down from top-left,
-    // then shift it right by half the space freed to visually center it.
-    target.style.width           = '100%';
-    target.style.transform       = `scale(${zoom})`;
-    target.style.transformOrigin = 'top left';
-    target.style.marginLeft      = `${((1 - zoom) / 2 * 100).toFixed(4)}%`;
-    document.body.style.overflow = 'hidden';
-    document.body.style.height   = `${(zoom * 100).toFixed(2)}vh`;
+    // Scale from top-center of the body so centering is always correct
+    document.body.style.transform       = `scale(${zoom})`;
+    document.body.style.transformOrigin = 'top center';
+    document.body.style.width           = `${(100 / zoom).toFixed(4)}%`;
+    document.body.style.marginLeft      = `${((1 - 1/zoom) / 2 * 100).toFixed(4)}%`;
+    document.body.style.overflow        = 'hidden';
+    document.body.style.height          = `${(100 / zoom).toFixed(4)}vh`;
   }
 })();
