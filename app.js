@@ -995,12 +995,23 @@ if (!loadedFromHash) refreshGraph();
   const zoom = parseFloat(params.get('zoom'));
   if (zoom > 0 && zoom < 1) {
     const target = appMain || document.body;
+    // Wrap in a centering flex shell so transform doesn't shift content left
+    const shell = document.createElement('div');
+    shell.style.cssText = [
+      'width:100%',
+      'display:flex',
+      'justify-content:center',
+      'align-items:flex-start',
+      `height:${(zoom * 100).toFixed(2)}vh`,
+      'overflow:hidden',
+    ].join(';');
+    target.parentNode.insertBefore(shell, target);
+    shell.appendChild(target);
     target.style.transform       = `scale(${zoom})`;
     target.style.transformOrigin = 'top center';
     target.style.width           = `${(1 / zoom * 100).toFixed(2)}%`;
-    target.style.marginLeft      = `${((1 / zoom - 1) / -2 * 100).toFixed(2)}%`;
-    // Shrink the body height so the iframe doesn't scroll
-    document.body.style.height   = `${(zoom * 100).toFixed(2)}vh`;
+    target.style.flexShrink      = '0';
     document.body.style.overflow = 'hidden';
+    document.body.style.height   = `${(zoom * 100).toFixed(2)}vh`;
   }
 })();
