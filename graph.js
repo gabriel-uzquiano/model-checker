@@ -27,7 +27,7 @@ function forceLayout(domain, W, H, iterations = 120) {
 
   const positions = {};
   if (needReset) {
-    const R = Math.min(cx, cy) * 0.60;
+    const R = Math.min(cx, cy) * 0.50;
     if (n === 1) {
       positions[domain[0]] = { x: cx, y: cy };
     } else {
@@ -83,7 +83,7 @@ function forceLayout(domain, W, H, iterations = 120) {
       const fx   = forces[el].x, fy = forces[el].y;
       const flen = Math.max(Math.sqrt(fx * fx + fy * fy), 0.001);
       const disp = Math.min(flen, maxDisp);
-      const pad  = 90;  // must exceed loop bulge (~85) so self-loop arcs aren't clipped
+      const pad  = 120;  // must exceed loop bulge (~85) + label height above node (~30)
       positions[el].x = Math.max(pad, Math.min(W - pad, positions[el].x + (fx / flen) * disp));
       positions[el].y = Math.max(pad, Math.min(H - pad, positions[el].y + (fy / flen) * disp));
     });
