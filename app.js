@@ -994,7 +994,6 @@ if (!loadedFromHash) refreshGraph();
   // ?zoom=0.75 — scale content down while keeping the iframe container full-size
   const zoom = parseFloat(params.get('zoom'));
   if (zoom > 0 && zoom < 1) {
-    const target = appMain || document.body;
     // Scale from top-center of the body so centering is always correct
     document.body.style.transform       = `scale(${zoom})`;
     document.body.style.transformOrigin = 'top center';
@@ -1002,5 +1001,11 @@ if (!loadedFromHash) refreshGraph();
     document.body.style.marginLeft      = `${((1 - 1/zoom) / 2 * 100).toFixed(4)}%`;
     document.body.style.overflow        = 'hidden';
     document.body.style.height          = `${(100 / zoom).toFixed(4)}vh`;
+    // Re-render the graph so node positions use the zoomed canvas dimensions
+    // (the first render happened before the transform was applied)
+    requestAnimationFrame(() => {
+      resetNodePositions(); // clear cached positions so layout recomputes with zoomed dims
+      refreshGraph();
+    });
   }
 })();
