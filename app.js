@@ -996,13 +996,13 @@ if (!loadedFromHash) refreshGraph();
   if (zoom > 0 && zoom < 1) {
     const gc = document.querySelector('.graph-container');
     if (gc) {
-      // Use the card's own width (not viewport) so we don't overflow card padding
-      const cardW = gc.parentElement ? gc.parentElement.clientWidth : gc.offsetWidth;
       const gcRect = gc.getBoundingClientRect();
+      // Natural width of gc before any transform (right edge to left edge within card)
+      const naturalW = gc.offsetWidth;
       // Height available from gc top to bottom of viewport
       const visualH = window.innerHeight - gcRect.top;
-      // Expand dimensions so that after scale(zoom) they equal the visual slot
-      const expandedW = cardW / zoom;
+      // Expand dimensions so that after scale(zoom) they match the natural slot exactly
+      const expandedW = naturalW / zoom;
       const expandedH = visualH / zoom;
       gc.style.width           = `${expandedW.toFixed(2)}px`;
       gc.style.height          = `${expandedH.toFixed(2)}px`;
