@@ -1002,8 +1002,6 @@ if (!loadedFromHash) refreshGraph();
       'display:flex',
       'justify-content:center',
       'align-items:flex-start',
-      `height:${(zoom * 100).toFixed(2)}vh`,
-      'overflow:hidden',
     ].join(';');
     target.parentNode.insertBefore(shell, target);
     shell.appendChild(target);
