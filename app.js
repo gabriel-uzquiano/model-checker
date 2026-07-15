@@ -990,4 +990,16 @@ if (!loadedFromHash) refreshGraph();
   }
 
   document.body.classList.add('card-mode');
+
+  // ?zoom=0.75 — scale content down while keeping the iframe container full-size
+  const zoom = parseFloat(params.get('zoom'));
+  if (zoom > 0 && zoom < 1) {
+    const target = appMain || document.body;
+    target.style.transform       = `scale(${zoom})`;
+    target.style.transformOrigin = 'top left';
+    target.style.width           = `${(1 / zoom * 100).toFixed(2)}%`;
+    // Shrink the body height so the iframe doesn't scroll
+    document.body.style.height   = `${(zoom * 100).toFixed(2)}vh`;
+    document.body.style.overflow = 'hidden';
+  }
 })();
