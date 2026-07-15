@@ -1005,10 +1005,12 @@ if (!loadedFromHash) refreshGraph();
     ].join(';');
     target.parentNode.insertBefore(shell, target);
     shell.appendChild(target);
+    // Keep element at 100vw, scale it down from top-left,
+    // then shift it right by half the space freed to visually center it.
+    target.style.width           = '100%';
     target.style.transform       = `scale(${zoom})`;
-    target.style.transformOrigin = 'top center';
-    target.style.width           = `${(1 / zoom * 100).toFixed(2)}%`;
-    target.style.flexShrink      = '0';
+    target.style.transformOrigin = 'top left';
+    target.style.marginLeft      = `${((1 - zoom) / 2 * 100).toFixed(4)}%`;
     document.body.style.overflow = 'hidden';
     document.body.style.height   = `${(zoom * 100).toFixed(2)}vh`;
   }
