@@ -991,27 +991,15 @@ if (!loadedFromHash) refreshGraph();
 
   document.body.classList.add('card-mode');
 
-  // ?zoom=0.75 — scale the graph-container content while keeping the iframe full-size
+  // ?zoom=0.75 - CSS zoom shrinks content in-place without affecting layout flow.
+  // No width/height/transform compensation needed - the frame stays full-size.
   const zoom = parseFloat(params.get('zoom'));
   if (zoom > 0 && zoom < 1) {
     const gc = document.querySelector('.graph-container');
     if (gc) {
-      const gcRect = gc.getBoundingClientRect();
-      // Natural width of gc before any transform (right edge to left edge within card)
-      const naturalW = gc.offsetWidth;
-      // Height available from gc top to bottom of viewport
-      const visualH = window.innerHeight - gcRect.top;
-      // Expand dimensions so that after scale(zoom) they match the natural slot exactly
-      const expandedW = naturalW / zoom;
-      const expandedH = visualH / zoom;
-      gc.style.width           = `${expandedW.toFixed(2)}px`;
-      gc.style.height          = `${expandedH.toFixed(2)}px`;
-      gc.style.minHeight       = 'unset';
-      gc.style.transform       = `scale(${zoom})`;
-      gc.style.transformOrigin = 'top left';
-      gc.style.overflow        = 'hidden';
+      gc.style.zoom = zoom;
     }
-    // Re-render so node positions use the actual (expanded) canvas dimensions
+    // Re-render so node layout uses the zoomed canvas dimensions
     requestAnimationFrame(() => {
       resetNodePositions();
       refreshGraph();
