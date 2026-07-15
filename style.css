@@ -1,3 +1,22 @@
+@font-face {
+  font-family: "et-book";
+  src: url("https://gabriel-uzquiano.github.io/logic/libs/tufte-css-2015.12.29/et-book/roman-line-figures.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: "et-book";
+  src: url("https://gabriel-uzquiano.github.io/logic/libs/tufte-css-2015.12.29/et-book/display-italic-old-style-figures.ttf") format("truetype");
+  font-weight: normal;
+  font-style: italic;
+}
+@font-face {
+  font-family: "et-book";
+  src: url("https://gabriel-uzquiano.github.io/logic/libs/tufte-css-2015.12.29/et-book/bold-line-figures.ttf") format("truetype");
+  font-weight: bold;
+  font-style: normal;
+}
+
 /* ─── Design tokens — Uzquiano course palette ─────────────────── */
 :root, [data-theme="light"] {
   --text-xs:   clamp(0.75rem,  0.7rem  + 0.25vw, 0.875rem);
@@ -62,7 +81,7 @@
   --shadow-sm:   0 1px 3px rgba(0,0,0,0.06);
   --shadow-md:   0 4px 12px rgba(0,0,0,0.08);
 
-  --font-body:    'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  --font-body:    'et-book', 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
   --font-mono:    'Consolas', 'Liberation Mono', Menlo, Courier, monospace;
   --font-sans:    'Gill Sans', 'Gill Sans MT', Calibri, sans-serif;
 }
