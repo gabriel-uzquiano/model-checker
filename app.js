@@ -996,20 +996,19 @@ if (!loadedFromHash) refreshGraph();
   if (zoom > 0 && zoom < 1) {
     const gc = document.querySelector('.graph-container');
     if (gc) {
-      // gcTop: distance from top of iframe to top of graph-container
-      const gcTop = gc.getBoundingClientRect().top;
-      // Visual height available for the graph-container after zoom
-      const visualH = window.innerHeight - gcTop;
-      // Expand so that after scaling by zoom it fills that visual height
+      // Use the card's own width (not viewport) so we don't overflow card padding
+      const cardW = gc.parentElement ? gc.parentElement.clientWidth : gc.offsetWidth;
+      const gcRect = gc.getBoundingClientRect();
+      // Height available from gc top to bottom of viewport
+      const visualH = window.innerHeight - gcRect.top;
+      // Expand dimensions so that after scale(zoom) they equal the visual slot
+      const expandedW = cardW / zoom;
       const expandedH = visualH / zoom;
-      const expandedW = window.innerWidth / zoom;
-      const ml = (window.innerWidth - expandedW) / 2;
-      gc.style.transform       = `scale(${zoom})`;
-      gc.style.transformOrigin = 'top center';
       gc.style.width           = `${expandedW.toFixed(2)}px`;
-      gc.style.marginLeft      = `${ml.toFixed(2)}px`;
       gc.style.height          = `${expandedH.toFixed(2)}px`;
       gc.style.minHeight       = 'unset';
+      gc.style.transform       = `scale(${zoom})`;
+      gc.style.transformOrigin = 'top left';
       gc.style.overflow        = 'hidden';
     }
     // Re-render so node positions use the actual (expanded) canvas dimensions
