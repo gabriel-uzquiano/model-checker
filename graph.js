@@ -83,7 +83,7 @@ function forceLayout(domain, W, H, iterations = 120) {
       const fx   = forces[el].x, fy = forces[el].y;
       const flen = Math.max(Math.sqrt(fx * fx + fy * fy), 0.001);
       const disp = Math.min(flen, maxDisp);
-      const pad  = 120;  // must exceed loop bulge (~85) + label height above node (~30)
+      const pad  = 150;  // node radius (~37) + label overhang above node (~70) + margin
       positions[el].x = Math.max(pad, Math.min(W - pad, positions[el].x + (fx / flen) * disp));
       positions[el].y = Math.max(pad, Math.min(H - pad, positions[el].y + (fy / flen) * disp));
     });

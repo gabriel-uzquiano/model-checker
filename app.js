@@ -991,20 +991,25 @@ if (!loadedFromHash) refreshGraph();
 
   document.body.classList.add('card-mode');
 
-  // ?zoom=0.75 — scale content down while keeping the iframe container full-size
+  // ?zoom=0.75 — scale the graph-container content while keeping the iframe full-size
   const zoom = parseFloat(params.get('zoom'));
   if (zoom > 0 && zoom < 1) {
-    // Scale from top-center of the body so centering is always correct
-    document.body.style.transform       = `scale(${zoom})`;
-    document.body.style.transformOrigin = 'top center';
-    document.body.style.width           = `${(100 / zoom).toFixed(4)}%`;
-    document.body.style.marginLeft      = `${((1 - 1/zoom) / 2 * 100).toFixed(4)}%`;
-    document.body.style.overflow        = 'hidden';
-    document.body.style.height          = `${(100 / zoom).toFixed(4)}vh`;
-    // Re-render the graph so node positions use the zoomed canvas dimensions
-    // (the first render happened before the transform was applied)
+    const gc = document.querySelector('.graph-container');
+    if (gc) {
+      // Expand the container so after scaling it fills its slot
+      const pct = (100 / zoom).toFixed(4);
+      const ml  = ((1 - 1/zoom) / 2 * 100).toFixed(4);
+      gc.style.transform       = `scale(${zoom})`;
+      gc.style.transformOrigin = 'top center';
+      gc.style.width           = `${pct}%`;
+      gc.style.marginLeft      = `${ml}%`;
+      // Expand height so scaled content fills the visual slot
+      gc.style.height          = `${(100 / zoom).toFixed(4)}%`;
+      gc.style.overflow        = 'hidden';
+    }
+    // Re-render so node positions use the actual (expanded) canvas dimensions
     requestAnimationFrame(() => {
-      resetNodePositions(); // clear cached positions so layout recomputes with zoomed dims
+      resetNodePositions();
       refreshGraph();
     });
   }
