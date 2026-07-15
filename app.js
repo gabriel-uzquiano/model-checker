@@ -996,15 +996,20 @@ if (!loadedFromHash) refreshGraph();
   if (zoom > 0 && zoom < 1) {
     const gc = document.querySelector('.graph-container');
     if (gc) {
-      // Expand the container so after scaling it fills its slot
-      const pct = (100 / zoom).toFixed(4);
-      const ml  = ((1 - 1/zoom) / 2 * 100).toFixed(4);
+      // gcTop: distance from top of iframe to top of graph-container
+      const gcTop = gc.getBoundingClientRect().top;
+      // Visual height available for the graph-container after zoom
+      const visualH = window.innerHeight - gcTop;
+      // Expand so that after scaling by zoom it fills that visual height
+      const expandedH = visualH / zoom;
+      const expandedW = window.innerWidth / zoom;
+      const ml = (window.innerWidth - expandedW) / 2;
       gc.style.transform       = `scale(${zoom})`;
       gc.style.transformOrigin = 'top center';
-      gc.style.width           = `${pct}%`;
-      gc.style.marginLeft      = `${ml}%`;
-      // Expand height so scaled content fills the visual slot
-      gc.style.height          = `${(100 / zoom).toFixed(4)}%`;
+      gc.style.width           = `${expandedW.toFixed(2)}px`;
+      gc.style.marginLeft      = `${ml.toFixed(2)}px`;
+      gc.style.height          = `${expandedH.toFixed(2)}px`;
+      gc.style.minHeight       = 'unset';
       gc.style.overflow        = 'hidden';
     }
     // Re-render so node positions use the actual (expanded) canvas dimensions
