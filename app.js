@@ -996,8 +996,9 @@ if (!loadedFromHash) refreshGraph();
   if (zoom > 0 && zoom < 1) {
     const target = appMain || document.body;
     target.style.transform       = `scale(${zoom})`;
-    target.style.transformOrigin = 'top left';
+    target.style.transformOrigin = 'top center';
     target.style.width           = `${(1 / zoom * 100).toFixed(2)}%`;
+    target.style.marginLeft      = `${((1 / zoom - 1) / -2 * 100).toFixed(2)}%`;
     // Shrink the body height so the iframe doesn't scroll
     document.body.style.height   = `${(zoom * 100).toFixed(2)}vh`;
     document.body.style.overflow = 'hidden';
