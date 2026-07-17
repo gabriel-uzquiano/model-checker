@@ -141,7 +141,7 @@ function removeFormulaSlot(id) {
 function renumberSlots() {
   document.querySelectorAll('.formula-slot').forEach((el, i) => {
     const lbl = el.querySelector('.slot-label');
-    if (lbl) lbl.textContent = '\u03c6' + toSubscript(i + 1);
+    if (lbl) lbl.textContent = String(i + 1);
     // Hide remove button on the only remaining slot
     const btn = el.querySelector('.slot-remove');
     if (btn) btn.style.visibility = formulaSlots.length > 1 ? 'visible' : 'hidden';
@@ -597,7 +597,7 @@ function showMultiResult(results, varAssign) {
 
     const lbl       = document.createElement('span');
     lbl.className   = 'result-block-label';
-    lbl.textContent = '\u03c6' + toSubscript(i + 1);
+    lbl.textContent = String(i + 1);
     header.appendChild(lbl);
 
     const fml       = document.createElement('span');
