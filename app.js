@@ -13,6 +13,26 @@ let currentSig = null;
 // First valid AST (used by graph)
 let currentAst = null;
 
+// ─── Live ASCII replacement (prop connectives) ──────────────────────────────────────
+const PROP_ASCII = [
+  [/<->/g,  '↔'],
+  [/->/g,   '→'],
+  [/\/\\/g, '∧'],
+  [/\\\/g,  '∨'],
+  [/~/g,   '¬'],
+  [/&/g,   '∧'],
+  [/\|/g,  '∨'],
+];
+function liveReplaceProp(el) {
+  const orig = el.value, pos = el.selectionStart;
+  let s = orig;
+  for (const [pat, rep] of PROP_ASCII) s = s.replace(pat, rep);
+  if (s !== orig) {
+    el.value = s;
+    el.setSelectionRange(pos + (s.length - orig.length), pos + (s.length - orig.length));
+  }
+}
+
 // ─── Theme toggle ─────────────────────────────────────────────────────────────
 (function () {
   const btn  = document.querySelector('[data-theme-toggle]');
@@ -100,6 +120,7 @@ function addFormulaSlot(initialValue) {
   statusEl.className = 'parse-status';
 
   input.addEventListener('focus', () => { lastFocusedInput = input; });
+  input.addEventListener('keyup', () => liveReplaceProp(input));
   input.addEventListener('input', () => onSlotChange(id, input, statusEl));
 
   inputWrap.appendChild(input);
