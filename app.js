@@ -26,6 +26,8 @@ function liveReplaceProp(el) {
   const orig = el.value, pos = el.selectionStart;
   let s = orig;
   for (const [pat, rep] of PROP_ASCII) s = s.split(pat).join(rep);
+  s = s.replace(/A(?=[xyz\d])/g, '\u2200');
+  s = s.replace(/E(?=[xyz\d])/g, '\u2203');
   if (s !== orig) {
     el.value = s;
     el.setSelectionRange(pos + (s.length - orig.length), pos + (s.length - orig.length));
