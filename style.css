@@ -19,10 +19,10 @@
 
 /* ─── Design tokens — Uzquiano course palette ─────────────────── */
 :root, [data-theme="light"] {
-  --text-xs:   clamp(0.75rem,  0.7rem  + 0.25vw, 0.875rem);
-  --text-sm:   clamp(0.875rem, 0.8rem  + 0.35vw, 1rem);
-  --text-base: clamp(1rem,     0.95rem + 0.25vw, 1.125rem);
-  --text-lg:   clamp(1.125rem, 1rem    + 0.75vw, 1.5rem);
+  --text-xs:   clamp(0.875rem, 0.82rem + 0.25vw, 1rem);
+  --text-sm:   clamp(1rem,     0.95rem + 0.35vw, 1.125rem);
+  --text-base: clamp(1.125rem, 1.05rem + 0.35vw, 1.25rem);
+  --text-lg:   clamp(1.25rem,  1.1rem  + 0.75vw, 1.625rem);
   --text-xl:   clamp(1.5rem,   1.2rem  + 1.25vw, 2.25rem);
 
   --space-1: 0.25rem;
